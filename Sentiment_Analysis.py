@@ -1,9 +1,12 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, ConfusionMatrixDisplay
+from sklearn.model_selection import learning_curve
+from sklearn.utils.multiclass import unique_labels
 
 # Step 1: Data Preprocessing
 # Load the dataset
@@ -53,3 +56,34 @@ print("Accuracy:", accuracy)
 print("Precision:", precision)
 print("Recall:", recall)
 print("F1 Score:", f1)
+
+# Get unique labels from y_test and y_pred
+labels = unique_labels(y_test, y_pred)
+
+# Plot Confusion Matrix with dynamically determined display labels
+disp = ConfusionMatrixDisplay.from_predictions(
+    y_test, y_pred, display_labels=labels)
+disp.plot()
+plt.title('Confusion Matrix')
+plt.xlabel('Predicted Label')
+plt.ylabel('True Label')
+plt.show()
+
+# Plot Learning Curves
+train_sizes, train_scores, test_scores = learning_curve(clf, X_train_tfidf, y_train, cv=5, train_sizes=np.linspace(.1, 1.0, 5))
+train_scores_mean = np.mean(train_scores, axis=1)
+train_scores_std = np.std(train_scores, axis=1)
+test_scores_mean = np.mean(test_scores, axis=1)
+test_scores_std = np.std(test_scores, axis=1)
+
+plt.figure(figsize=(8, 6))
+plt.plot(train_sizes, train_scores_mean, 'o-', color='r', label='Training score')
+plt.plot(train_sizes, test_scores_mean, 'o-', color='b', label='Cross-validation score')
+plt.fill_between(train_sizes, train_scores_mean - train_scores_std, train_scores_mean + train_scores_std, alpha=0.1, color='r')
+plt.fill_between(train_sizes, test_scores_mean - test_scores_std, test_scores_mean + test_scores_std, alpha=0.1, color='b')
+plt.title('Learning Curves')
+plt.xlabel('Training examples')
+plt.ylabel('Score')
+plt.legend(loc='best')
+plt.grid(True)
+plt.show()
